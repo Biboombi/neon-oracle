@@ -29,18 +29,19 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
       "description": "Predict your daily crypto luck.",
       "primaryCategory": "utility"
     },
+    // ↓↓↓↓↓ 这里全部换成了你刚才生成的正确信息 (FID: 21563) ↓↓↓↓↓
     "accountAssociation": {
-      "header": "eyJmaWQiOjIxNDgwLCJ0eXBlIjoiYXV0aCIsImtleSI6IjB4ODcxN2ZDMEY2ZjllNjdkMzhmQTc1NzFjNTUwMWRmNzA3QTIzQzFBNiJ9",
+      "header": "eyJmaWQiOjIxNTYzLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4QzBBRGVGZUY4NGFlQTJDQTA4QTEyNWFCRUExNDdEMTA5ZDFEMjFDOSJ9",
       "payload": "eyJkb21haW4iOiJuZW9uLW9yYWNsZS52ZXJjZWwuYXBwIn0",
       "signature": "WHdZf8VGTlGuzgVzvJqRiurrjpiNyXBxwEEsIZrEEeQYOvamPMew3yGZVZG9tsOTq9dRN6RVNYmHADGmvZ6kcxs="
     }
+    // ↑↑↑↑↑ 之前报错是因为这里的 header 不对 ↑↑↑↑↑
   })
 })
 
 app.hono.get('/', (c) => {
   const baseUrl = getBaseUrl(c)
   
-  // 这里使用了反引号开始 HTML
   return c.html(`
     <!DOCTYPE html>
     <html lang="en">
