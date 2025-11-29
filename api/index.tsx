@@ -7,13 +7,9 @@ export const app = new Frog({
   title: 'Neon Oracle',
 })
 
-// --- 🔧 配置区域 (Configuration) ---
+// --- 🔧 配置区域 ---
 const SITE_URL = "https://neon-oracle.vercel.app";
-
-// ✅ Farcaster 链接 (一个 i)
 const FC_LINK = "https://warpcast.com/biboombi"; 
-
-// ✅ X (Twitter) 链接 (两个 i，且换成了 x.com)
 const X_LINK = "https://x.com/biboombii";
 
 app.hono.get('/.well-known/farcaster.json', (c) => {
@@ -28,8 +24,24 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
       "splashBackgroundColor": "#050505",
       "webhookUrl": `${SITE_URL}/api/webhook`,
       "subtitle": "Daily Prediction",
-      "description": "Predict your daily crypto luck.",
-      "primaryCategory": "utility"
+      "description": "Predict your daily crypto luck with streak rewards.",
+      "primaryCategory": "utility",
+      
+      // 👇👇👇 新增：商店装修信息 👇👇👇
+      
+      // 1. 标签：方便搜索
+      "tags": ["crypto", "luck", "daily", "utility", "game"],
+      
+      // 2. 商店横幅图 (建议 1200x630)
+      "heroImageUrl": `${SITE_URL}/image.png`, 
+      
+      // 3. 应用截图 (建议竖屏 1284x2778)
+      // 这些图片会显示在商店详情页的“预览”里
+      "screenshotUrls": [
+        `${SITE_URL}/image.png` 
+      ]
+      
+      // 👆👆👆 新增结束 👆👆👆
     },
     "accountAssociation": {
       "header": "eyJmaWQiOjIxNTYzLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4QzBBRGVGZUY4NGFlQTJDQTA4QTEyNWFCRUExNDdEMTA5ZDFEMjFDOSJ9",
@@ -43,7 +55,7 @@ app.hono.get('/', (c) => {
   
   const frameEmbed = JSON.stringify({
     version: "1",
-    imageUrl: `${SITE_URL}/image.png?v=9`, // 版本号 v9
+    imageUrl: `${SITE_URL}/image.png?v=10`, // v10
     button: {
       title: "🔮 Reveal & Check-In",
       action: {
@@ -62,11 +74,9 @@ app.hono.get('/', (c) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-      
       <meta property="og:title" content="Neon Oracle">
-      <meta property="og:image" content="${SITE_URL}/image.png?v=9">
+      <meta property="og:image" content="${SITE_URL}/image.png?v=10">
       <meta name="fc:frame" content='${frameEmbed}'>
-
       <title>Neon Oracle</title>
       <style>
         :root { --bg-color: #050505; --neon-cyan: #00f3ff; --neon-pink: #bc13fe; --neon-gold: #ffd700; --fc-purple: #855DCD; }
@@ -74,20 +84,8 @@ app.hono.get('/', (c) => {
         .grid-bg { position: fixed; top: 0; left: 0; width: 200%; height: 200%; background-image: linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px); background-size: 40px 40px; transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px); z-index: -1; animation: grid-move 20s linear infinite; }
         @keyframes grid-move { 0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); } }
         .container { width: 90%; max-width: 380px; text-align: center; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; padding-top: 20px; opacity: 0; transition: opacity 0.5s ease-in; }
-        
         .loaded .container { opacity: 1; }
-
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-            border: 1px solid #333;
-        }
+        .stats-bar { display: flex; justify-content: space-between; width: 100%; background: rgba(255, 255, 255, 0.1); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; box-sizing: border-box; border: 1px solid #333; }
         .stat-item { display: flex; flex-direction: column; align-items: center; }
         .stat-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
         .stat-value { font-size: 1.2rem; font-weight: bold; color: var(--neon-gold); text-shadow: 0 0 5px var(--neon-gold); }
@@ -97,72 +95,29 @@ app.hono.get('/', (c) => {
         .score-text { font-size: 3.5rem; font-weight: bold; margin: 0; opacity: 0; transition: opacity 0.5s; }
         .predict-text { font-size: 0.9rem; color: var(--neon-cyan); margin-top: 5px; opacity: 0; text-transform: uppercase; }
         .visible { opacity: 1 !important; }
-        .reward-popup {
-            position: absolute;
-            top: 40%;
-            font-size: 1.5rem;
-            color: var(--neon-gold);
-            font-weight: bold;
-            opacity: 0;
-            transform: translateY(0);
-            pointer-events: none;
-        }
+        .reward-popup { position: absolute; top: 40%; font-size: 1.5rem; color: var(--neon-gold); font-weight: bold; opacity: 0; transform: translateY(0); pointer-events: none; }
         .reward-popup.animate { animation: floatUp 1.5s ease-out forwards; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
-        
         .btn { background: transparent; padding: 15px 40px; font-size: 1.2rem; font-family: inherit; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 15px; width: 100%; max-width: 300px; box-sizing: border-box; border-radius: 8px; }
-        
         .btn-predict { color: var(--neon-cyan); border: 2px solid var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
         .btn-predict:hover { background: var(--neon-cyan); color: black; box-shadow: 0 0 30px var(--neon-cyan); }
         .btn-predict:disabled { border-color: #555; color: #555; box-shadow: none; cursor: not-allowed; }
-        
         .btn-share { display: none; color: var(--neon-pink); border: 2px solid var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
         .btn-share:hover { background: var(--neon-pink); color: white; box-shadow: 0 0 30px var(--neon-pink); }
-
-        .social-row {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            max-width: 300px;
-            margin-top: 20px;
-        }
-
-        .btn-social {
-            flex: 1;
-            padding: 10px;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            text-decoration: none;
-        }
-
+        .social-row { display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 20px; }
+        .btn-social { flex: 1; padding: 10px; font-size: 0.8rem; text-transform: uppercase; font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; text-decoration: none; }
         .btn-fc { background: rgba(133, 93, 205, 0.2); border: 1px solid var(--fc-purple); color: #d2b5ff; }
         .btn-fc:hover { background: var(--fc-purple); color: white; }
-
         .btn-x { background: rgba(255, 255, 255, 0.1); border: 1px solid #aaa; color: #ddd; }
         .btn-x:hover { background: white; color: black; border-color: white; }
-
       </style>
     </head>
     <body>
       <div class="grid-bg"></div>
       <div class="container">
         <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-label">Total Points</div>
-                <div class="stat-value" id="total-points">0</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Day Streak</div>
-                <div class="stat-value" id="day-streak">1</div>
-            </div>
+            <div class="stat-item"><div class="stat-label">Total Points</div><div class="stat-value" id="total-points">0</div></div>
+            <div class="stat-item"><div class="stat-label">Day Streak</div><div class="stat-value" id="day-streak">1</div></div>
         </div>
         <h1>NEON ORACLE</h1>
         <p style="color: #aaa; font-size: 0.9rem;">Check-in daily for bonus points!</p>
@@ -171,47 +126,32 @@ app.hono.get('/', (c) => {
           <div class="predict-text" id="keywords">WAITING...</div>
         </div>
         <div id="reward-popup" class="reward-popup"></div>
-        
         <button class="btn btn-predict" id="predict-btn">REVEAL DESTINY</button>
         <button class="btn btn-share" id="share-btn">SHARE RESULT</button>
-        
         <div class="social-row">
-            <button class="btn-social btn-fc" id="follow-fc">
-                🎩 Follow FC
-            </button>
-            <button class="btn-social btn-x" id="follow-x">
-                🐦 Follow X
-            </button>
+            <button class="btn-social btn-fc" id="follow-fc">🎩 Follow FC</button>
+            <button class="btn-social btn-x" id="follow-x">🐦 Follow X</button>
         </div>
-
       </div>
-
       <script type="module">
         import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
-
         const WORDS = ["BULLISH", "MOON", "HODL", "DUMP", "DEGEN", "WAGMI", "REKT", "ALPHA", "PEPE", "WHALE"];
         const STORAGE_KEY = 'neon_oracle_v2_stats'; 
         const REWARDS = [1, 2, 5, 6, 8, 10, 12, 15, 18, 20];
-        
-        // 直接使用常量，不用拼接了
         const SITE_URL = "${SITE_URL}";
         const FC_LINK = "${FC_LINK}";
         const X_LINK = "${X_LINK}";
-
         let gameState = { points: 0, streak: 0, lastCheckInDate: "", todayLuck: null, todayWord: null };
-
         function loadGame() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) { gameState = JSON.parse(saved); }
             updateStatsUI();
             if (gameState.lastCheckInDate === new Date().toDateString()) { showAlreadyPlayedUI(); }
         }
-
         function updateStatsUI() {
             document.getElementById('total-points').innerText = gameState.points;
             document.getElementById('day-streak').innerText = gameState.streak + " Days";
         }
-
         function handleCheckIn() {
             const today = new Date().toDateString();
             const yesterday = new Date();
@@ -225,14 +165,12 @@ app.hono.get('/', (c) => {
             gameState.lastCheckInDate = today;
             showRewardAnim(earnedPoints);
         }
-
         function showRewardAnim(amount) {
             const popup = document.getElementById('reward-popup');
             popup.innerText = "+" + amount + " PTS!";
             popup.classList.add('animate');
             setTimeout(() => popup.classList.remove('animate'), 2000);
         }
-
         function revealDestiny() {
           const btn = document.getElementById('predict-btn');
           const ball = document.getElementById('oracle-ball');
@@ -257,7 +195,6 @@ app.hono.get('/', (c) => {
             updateStatsUI();
           }, 2000);
         }
-
         function renderResult(score, word) {
           document.getElementById('score').innerText = score;
           document.getElementById('keywords').innerText = word;
@@ -266,7 +203,6 @@ app.hono.get('/', (c) => {
           document.getElementById('oracle-ball').classList.add('active');
           showAlreadyPlayedUI();
         }
-
         function showAlreadyPlayedUI() {
             const predictBtn = document.getElementById('predict-btn');
             predictBtn.innerText = "COME BACK TOMORROW";
@@ -282,36 +218,20 @@ app.hono.get('/', (c) => {
                  document.getElementById('oracle-ball').classList.add('active');
             }
         }
-
         function shareDestiny() {
            const text = \`🔮 NEON ORACLE 🔮\\n\\n🔥 Streak: \${gameState.streak} Days\\n🏆 Points: \${gameState.points}\\n✨ Luck: \${gameState.todayLuck}/100\\n🚀 Mood: \${gameState.todayWord}\\n\\nReveal yours 👇\`;
            const embedUrl = SITE_URL; 
            sdk.actions.openUrl(\`https://warpcast.com/~/compose?text=\${encodeURIComponent(text)}&embeds[]=\${encodeURIComponent(embedUrl)}\`);
         }
-
-        // --- 社交按钮逻辑 ---
-        function followFC() {
-            sdk.actions.openUrl(FC_LINK);
-        }
-
-        function followX() {
-            sdk.actions.openUrl(X_LINK);
-        }
-
+        function followFC() { sdk.actions.openUrl(FC_LINK); }
+        function followX() { sdk.actions.openUrl(X_LINK); }
         document.getElementById('predict-btn').addEventListener('click', revealDestiny);
         document.getElementById('share-btn').addEventListener('click', shareDestiny);
         document.getElementById('follow-fc').addEventListener('click', followFC);
         document.getElementById('follow-x').addEventListener('click', followX);
-
         loadGame(); 
-
         document.body.classList.add('loaded');
-        
-        try {
-            sdk.actions.ready();
-        } catch (e) {
-            console.error("SDK Ready failed:", e);
-        }
+        try { sdk.actions.ready(); } catch (e) { console.error("SDK Ready failed:", e); }
       </script>
     </body>
     </html>
