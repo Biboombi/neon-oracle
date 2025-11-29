@@ -29,11 +29,13 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
       "description": "Predict your daily crypto luck.",
       "primaryCategory": "utility"
     },
+    // ↓↓↓↓↓ 这里是你刚刚发给我的正确数据 ↓↓↓↓↓
     "accountAssociation": {
       "header": "eyJmaWQiOjIxNTYzLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4QzBBRGVGZUY4NGFlQTJDQTA4QTEyNWFCRUExNDdEMTA5ZDFEMjFDOSJ9",
       "payload": "eyJkb21haW4iOiJuZW9uLW9yYWNsZS52ZXJjZWwuYXBwIn0",
       "signature": "WHdZf8VGTlGuzgVzvJqRiurrjpiNyXBxwEEsIZrEEeQYOvamPMew3yGZVZG9tsOTq9dRN6RVNYmHADGmvZ6kcxs="
     }
+    // ↑↑↑↑↑ 完美匹配 ↑↑↑↑↑
   })
 })
 
@@ -51,10 +53,10 @@ app.hono.get('/', (c) => {
       <meta property="og:image" content="${baseUrl}/image.png">
       <meta property="fc:frame" content="vNext">
       <meta property="fc:frame:image" content="${baseUrl}/image.png">
-      
       <meta property="fc:frame:button:1" content="🔮 Reveal Destiny">
       <meta property="fc:frame:button:1:action" content="link">
       <meta property="fc:frame:button:1:target" content="${baseUrl}">
+
       <title>Neon Oracle</title>
       <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
       <style>
@@ -96,6 +98,7 @@ app.hono.get('/', (c) => {
         const WORDS = ["BULLISH", "MOON", "HODL", "DUMP", "DEGEN", "WAGMI", "REKT", "ALPHA", "PEPE", "WHALE"];
         const STORAGE_KEY = 'neon_oracle_data_v1';
         let currentData = null;
+
         function revealDestiny() {
           const btn = document.getElementById('predict-btn');
           const ball = document.getElementById('oracle-ball');
@@ -117,6 +120,7 @@ app.hono.get('/', (c) => {
             renderResult(data);
           }, 2000);
         }
+        
         function renderResult(data) {
           currentData = data;
           document.getElementById('score').innerText = data.score;
@@ -131,6 +135,7 @@ app.hono.get('/', (c) => {
           const shareBtn = document.getElementById('share-btn');
           shareBtn.style.display = "block"; 
         }
+
         function shareDestiny() {
            if (!currentData) return;
            var text = "🔮 NEON ORACLE PREDICTION 🔮\\n\\n✨ Luck Score: " + currentData.score + "/100\\n🚀 Sentiment: " + currentData.word + "\\n\\nCheck your destiny 👇";
@@ -142,7 +147,10 @@ app.hono.get('/', (c) => {
                window.open(shareUrl, '_blank');
            }
         }
+
+        // --- 核心修复：更激进地调用 Ready ---
         document.addEventListener("DOMContentLoaded", async () => {
+          
           const savedData = localStorage.getItem(STORAGE_KEY);
           if (savedData) {
             const parsed = JSON.parse(savedData);
@@ -152,13 +160,18 @@ app.hono.get('/', (c) => {
                 localStorage.removeItem(STORAGE_KEY);
             }
           }
-          if (window.farcaster && window.farcaster.sdk) { 
-            try { 
-                await window.farcaster.sdk.context; 
-                window.farcaster.sdk.actions.ready(); 
-            } catch (e) {
-                console.error("Farcaster SDK Error:", e);
-            } 
+
+          if (window.farcaster) {
+             // 策略1：立即调用，不等待
+             try {
+                window.farcaster.sdk.actions.ready();
+             } catch (e) { console.error("Early ready failed", e); }
+
+             // 策略2：等待加载后再调用（防止策略1失败）
+             try {
+                await window.farcaster.sdk.context;
+                window.farcaster.sdk.actions.ready();
+             } catch (e) { console.error("Context load failed", e); }
           }
         });
       </script>
@@ -169,4 +182,3 @@ app.hono.get('/', (c) => {
 
 export const GET = app.fetch
 export const POST = app.fetch
-
