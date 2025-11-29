@@ -7,7 +7,7 @@ export const app = new Frog({
   title: 'Neon Oracle',
 })
 
-// 🔧 修改点：直接把网址写死，确保万无一失
+// 硬编码 URL，确保按钮绝对能出来
 const SITE_URL = "https://neon-oracle.vercel.app";
 
 app.hono.get('/.well-known/farcaster.json', (c) => {
@@ -42,10 +42,10 @@ app.hono.get('/', (c) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
       
       <meta property="og:title" content="Neon Oracle">
-      <meta property="og:image" content="${SITE_URL}/image.png?v=4">
+      <meta property="og:image" content="${SITE_URL}/image.png?v=5">
       
       <meta property="fc:frame" content="vNext">
-      <meta property="fc:frame:image" content="${SITE_URL}/image.png?v=4">
+      <meta property="fc:frame:image" content="${SITE_URL}/image.png?v=5">
       <meta property="fc:frame:button:1" content="🔮 Reveal & Check-In">
       <meta property="fc:frame:button:1:action" content="link">
       <meta property="fc:frame:button:1:target" content="${SITE_URL}">
@@ -56,7 +56,11 @@ app.hono.get('/', (c) => {
         body { margin: 0; font-family: 'Courier New', Courier, monospace; background-color: var(--bg-color); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow: hidden; }
         .grid-bg { position: fixed; top: 0; left: 0; width: 200%; height: 200%; background-image: linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px); background-size: 40px 40px; transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px); z-index: -1; animation: grid-move 20s linear infinite; }
         @keyframes grid-move { 0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); } }
-        .container { width: 90%; max-width: 380px; text-align: center; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
+        .container { width: 90%; max-width: 380px; text-align: center; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; padding-top: 20px; opacity: 0; transition: opacity 0.5s ease-in; }
+        
+        /* 页面加载完成后显示内容的类 */
+        .loaded .container { opacity: 1; }
+
         .stats-bar {
             display: flex;
             justify-content: space-between;
@@ -130,7 +134,7 @@ app.hono.get('/', (c) => {
         const WORDS = ["BULLISH", "MOON", "HODL", "DUMP", "DEGEN", "WAGMI", "REKT", "ALPHA", "PEPE", "WHALE"];
         const STORAGE_KEY = 'neon_oracle_v2_stats'; 
         const REWARDS = [1, 2, 5, 6, 8, 10, 12, 15, 18, 20];
-        const SITE_URL = "https://neon-oracle.vercel.app"; // JS 里也用这个写死的地址
+        const SITE_URL = "https://neon-oracle.vercel.app";
 
         let gameState = { points: 0, streak: 0, lastCheckInDate: "", todayLuck: null, todayWord: null };
 
@@ -223,18 +227,25 @@ app.hono.get('/', (c) => {
            sdk.actions.openUrl(\`https://warpcast.com/~/compose?text=\${encodeURIComponent(text)}&embeds[]=\${encodeURIComponent(embedUrl)}\`);
         }
 
+        // --- 初始化序列 ---
+        
+        // 1. 绑定事件
         document.getElementById('predict-btn').addEventListener('click', revealDestiny);
         document.getElementById('share-btn').addEventListener('click', shareDestiny);
 
+        // 2. 加载游戏数据
         loadGame(); 
 
-        const checkReady = setInterval(() => {
-            if (sdk && sdk.actions) {
-                sdk.actions.ready();
-                clearInterval(checkReady);
-            }
-        }, 100);
-        setTimeout(() => { if (sdk && sdk.actions) sdk.actions.ready(); }, 3000);
+        // 3. 通知 Farcaster 我们准备好了
+        // 我们给 body 加一个 loaded 类，实现渐变显示效果
+        document.body.classList.add('loaded');
+        
+        // 4. 调用 SDK Ready (指南要求的核心步骤)
+        try {
+            sdk.actions.ready();
+        } catch (e) {
+            console.error("SDK Ready failed:", e);
+        }
       </script>
     </body>
     </html>
