@@ -4,10 +4,10 @@ export const config = { runtime: 'edge' }
 
 export const app = new Frog({
   basePath: '/',
-  // dev: { devtools: true } // Enable this if you need to debug locally
+  // dev: { devtools: true } 
 })
 
-// Automatically detect the domain (localhost or production)
+// Automatically detect the domain
 const getBaseUrl = (c: any) => {
   const host = c.req.header('host') || 'neon-oracle.vercel.app'
   const protocol = host.includes('localhost') ? 'http' : 'https'
@@ -29,6 +29,12 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
       "subtitle": "Daily Prediction",
       "description": "Predict your daily crypto luck.",
       "primaryCategory": "utility"
+    },
+    // ↓↓↓ 这里是你刚才提供的真实身份证信息 ↓↓↓
+    "accountAssociation": {
+      "header": "eyJmaWQiOjIxNTYzLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4QzBBRGVGZUY4NGFlQTJDQTA4QTEyNWFCRUExNDdEMTA5ZDFEMjFDOSJ9",
+      "payload": "eyJkb21haW4iOiJuZW9uLW9yYWNsZS52ZXJjZWwuYXBwIn0",
+      "signature": "WHdZf8VGTlGuzgVzvJqRiurrjpiNyXBxwEEsIZrEEeQYOvamPMew3yGZVZG9tsOTq9dRN6RVNYmHADGmvZ6kcxs="
     }
   })
 })
@@ -41,7 +47,7 @@ app.hono.get('/', (c) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-      
+       
       <meta property="og:title" content="Neon Oracle">
       <meta property="og:image" content="${baseUrl}/image.png">
       <meta property="fc:frame" content="vNext">
@@ -144,10 +150,10 @@ app.hono.get('/', (c) => {
           const predictBtn = document.getElementById('predict-btn');
           predictBtn.innerText = "COME BACK TOMORROW";
           predictBtn.disabled = true;
-          predictBtn.style.display = "none"; // Hide predict button
+          predictBtn.style.display = "none"; 
 
           const shareBtn = document.getElementById('share-btn');
-          shareBtn.style.display = "block"; // Show share button
+          shareBtn.style.display = "block"; 
         }
 
         function shareDestiny() {
@@ -157,7 +163,6 @@ app.hono.get('/', (c) => {
            
            const embedUrl = "${baseUrl}"; 
            
-           // Use Farcaster Actions to open the compose window
            const shareUrl = \`https://warpcast.com/~/compose?text=\${encodeURIComponent(text)}&embeds[]=\${encodeURIComponent(embedUrl)}\`;
            
            if (window.farcaster && window.farcaster.sdk) {
@@ -168,7 +173,6 @@ app.hono.get('/', (c) => {
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-          // Check for existing data
           const savedData = localStorage.getItem(STORAGE_KEY);
           if (savedData) {
             const parsed = JSON.parse(savedData);
@@ -189,10 +193,3 @@ app.hono.get('/', (c) => {
           }
         });
       </script>
-    </body>
-    </html>
-  `)
-})
-
-export const GET = app.fetch
-export const POST = app.fetch
