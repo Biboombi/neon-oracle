@@ -60,17 +60,26 @@ app.hono.get('/', (c) => {
         @keyframes grid-move { 0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); } }
         .container { width: 90%; max-width: 380px; text-align: center; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; }
         h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan); letter-spacing: 2px; }
+        
         .oracle-display { width: 200px; height: 200px; margin: 30px auto; border-radius: 50%; background: radial-gradient(circle, #222, #000); border: 2px solid var(--neon-pink); box-shadow: 0 0 20px var(--neon-pink), inset 0 0 30px var(--neon-pink); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.5s ease; position: relative; }
         .oracle-display.active { box-shadow: 0 0 50px var(--neon-cyan), inset 0 0 50px var(--neon-cyan); border-color: var(--neon-cyan); transform: scale(1.05); }
         .score-text { font-size: 4rem; font-weight: bold; margin: 0; opacity: 0; transition: opacity 0.5s; }
         .predict-text { font-size: 1rem; color: var(--neon-cyan); margin-top: 5px; opacity: 0; text-transform: uppercase; }
         .visible { opacity: 1 !important; }
+        
         .btn { background: transparent; padding: 15px 40px; font-size: 1.2rem; font-family: inherit; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 15px; width: 100%; max-width: 300px; box-sizing: border-box; }
+        
         .btn-predict { color: var(--neon-cyan); border: 2px solid var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
         .btn-predict:hover { background: var(--neon-cyan); color: black; box-shadow: 0 0 30px var(--neon-cyan); }
         .btn-predict:disabled { border-color: #555; color: #555; box-shadow: none; cursor: not-allowed; }
+        
         .btn-share { display: none; color: var(--neon-pink); border: 2px solid var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
         .btn-share:hover { background: var(--neon-pink); color: white; box-shadow: 0 0 30px var(--neon-pink); }
+        
+        /* 新增钱包按钮样式 */
+        .btn-wallet { color: white; border: 1px solid #555; background: rgba(255,255,255,0.1); font-size: 0.9rem; margin-bottom: 20px; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-wallet:hover { background: rgba(255,255,255,0.2); border-color: white; }
+        
         .btn-twitter { margin-top: 20px; text-decoration: none; color: #888; font-size: 0.8rem; }
         .btn-twitter:hover { color: var(--neon-cyan); }
       </style>
@@ -78,8 +87,14 @@ app.hono.get('/', (c) => {
     <body>
       <div class="grid-bg"></div>
       <div class="container">
+        <!-- 钱包按钮放在最上面 -->
+        <button class="btn btn-wallet" id="wallet-btn">
+           🔌 Connect Wallet
+        </button>
+
         <h1>NEON ORACLE</h1>
         <p style="color: #aaa; font-size: 0.9rem;">Check your daily crypto luck</p>
+        
         <div class="oracle-display" id="oracle-ball">
           <div class="score-text" id="score">?</div>
           <div class="predict-text" id="keywords">WAITING...</div>
@@ -87,18 +102,52 @@ app.hono.get('/', (c) => {
         
         <button class="btn btn-predict" id="predict-btn">REVEAL DESTINY</button>
         <button class="btn btn-share" id="share-btn">SHARE RESULT</button>
+        
         <a href="https://twitter.com/biboombii" target="_blank" class="btn-twitter">@biboombii</a>
       </div>
 
       <script type="module">
-        // 1. 严格按照文档使用 import
-        import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
+        // 升级到最新的 miniapp-sdk
+        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
 
         const WORDS = ["BULLISH", "MOON", "HODL", "DUMP", "DEGEN", "WAGMI", "REKT", "ALPHA", "PEPE", "WHALE"];
         const STORAGE_KEY = 'neon_oracle_data_v1';
         let currentData = null;
 
-        // --- 逻辑函数 ---
+        // --- 钱包连接逻辑 ---
+        async function connectWallet() {
+            const walletBtn = document.getElementById('wallet-btn');
+            
+            // 检查 SDK 是否有钱包功能
+            if (!sdk.wallet || !sdk.wallet.solana) {
+                alert("Please open this in Warpcast Mobile!");
+                return;
+            }
+
+            try {
+                walletBtn.innerText = "Connecting...";
+                
+                // 唤起 Farcaster 原生 Solana 连接
+                const result = await sdk.wallet.solana.connect();
+                
+                // 获取地址
+                const address = result.publicKey.toString();
+                const shortAddr = address.slice(0, 4) + '...' + address.slice(-4);
+                
+                walletBtn.innerText = "🟢 " + shortAddr;
+                walletBtn.style.borderColor = "#00f3ff";
+                walletBtn.style.color = "#00f3ff";
+                
+                // (可选) 这里可以把地址保存起来
+                console.log("Connected:", address);
+
+            } catch (e) {
+                console.error(e);
+                walletBtn.innerText = "🔌 Connect Wallet"; // 失败重置
+            }
+        }
+
+        // --- 原有逻辑 ---
         function revealDestiny() {
           const btn = document.getElementById('predict-btn');
           const ball = document.getElementById('oracle-ball');
@@ -149,21 +198,16 @@ app.hono.get('/', (c) => {
 
         function shareDestiny() {
            if (!currentData) return;
-           
            const text = \`🔮 NEON ORACLE PREDICTION 🔮\\n\\n✨ Luck Score: \${currentData.score}/100\\n🚀 Sentiment: \${currentData.word}\\n\\nCheck your destiny 👇\`;
-           
            const embedUrl = "${baseUrl}"; 
-           
            sdk.actions.openUrl(\`https://warpcast.com/~/compose?text=\${encodeURIComponent(text)}&embeds[]=\${encodeURIComponent(embedUrl)}\`);
         }
 
-        // --- 初始化与事件绑定 ---
-        
-        // 因为 type="module" 是隔离的，我们需要手动绑定点击事件
+        // --- 事件绑定 ---
         document.getElementById('predict-btn').addEventListener('click', revealDestiny);
         document.getElementById('share-btn').addEventListener('click', shareDestiny);
+        document.getElementById('wallet-btn').addEventListener('click', connectWallet); // 绑定钱包按钮
 
-        // 检查本地数据
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
           const parsed = JSON.parse(savedData);
@@ -174,14 +218,17 @@ app.hono.get('/', (c) => {
           }
         }
 
-        // ⚡️⚡️⚡️ 官方文档要求的核心调用 ⚡️⚡️⚡️
-        try {
-            // 加载完成后，立即通知 Farcaster
-            sdk.actions.ready();
-            console.log("SDK Ready called via Module");
-        } catch (e) {
-            console.error("SDK Error:", e);
-        }
+        // --- 强制 Ready 逻辑 ---
+        const checkReady = setInterval(() => {
+            if (sdk && sdk.actions) {
+                sdk.actions.ready();
+                clearInterval(checkReady);
+            }
+        }, 100);
+
+        setTimeout(() => {
+             if (sdk && sdk.actions) sdk.actions.ready();
+        }, 3000);
       </script>
     </body>
     </html>
