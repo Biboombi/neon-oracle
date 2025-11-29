@@ -46,8 +46,12 @@ app.hono.get('/', (c) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+      
+      <meta property="og:title" content="Neon Oracle">
+      <meta property="og:image" content="${baseUrl}/image.png?v=3">
+      
       <meta property="fc:frame" content="vNext">
-      <meta property="fc:frame:image" content="${baseUrl}/image.png">
+      <meta property="fc:frame:image" content="${baseUrl}/image.png?v=3">
       <meta property="fc:frame:button:1" content="🔮 Reveal & Check-In">
       <meta property="fc:frame:button:1:action" content="link">
       <meta property="fc:frame:button:1:target" content="${baseUrl}">
@@ -62,7 +66,6 @@ app.hono.get('/', (c) => {
         
         .container { width: 90%; max-width: 380px; text-align: center; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
         
-        /* 🏆 新增：顶部状态栏 */
         .stats-bar {
             display: flex;
             justify-content: space-between;
@@ -87,7 +90,6 @@ app.hono.get('/', (c) => {
         .predict-text { font-size: 0.9rem; color: var(--neon-cyan); margin-top: 5px; opacity: 0; text-transform: uppercase; }
         .visible { opacity: 1 !important; }
         
-        /* 奖励提示动画 */
         .reward-popup {
             position: absolute;
             top: 40%;
@@ -148,21 +150,17 @@ app.hono.get('/', (c) => {
         import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
 
         const WORDS = ["BULLISH", "MOON", "HODL", "DUMP", "DEGEN", "WAGMI", "REKT", "ALPHA", "PEPE", "WHALE"];
-        const STORAGE_KEY = 'neon_oracle_v2_stats'; // 新的存储 Key
-        
-        // 💰 奖励表：索引0代表第1天，索引9代表第10天
-        // Day 1=1, Day 3=5, Day 10=20
+        const STORAGE_KEY = 'neon_oracle_v2_stats'; 
         const REWARDS = [1, 2, 5, 6, 8, 10, 12, 15, 18, 20];
 
         let gameState = {
             points: 0,
-            streak: 0, // 0 means day 1 is next
+            streak: 0, 
             lastCheckInDate: "",
             todayLuck: null,
             todayWord: null
         };
 
-        // --- 核心逻辑 ---
         function loadGame() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
@@ -170,7 +168,6 @@ app.hono.get('/', (c) => {
             }
             updateStatsUI();
             
-            // 检查今天是否已经签到过
             if (gameState.lastCheckInDate === new Date().toDateString()) {
                 showAlreadyPlayedUI();
             }
@@ -178,13 +175,7 @@ app.hono.get('/', (c) => {
 
         function updateStatsUI() {
             document.getElementById('total-points').innerText = gameState.points;
-            // 显示 streak + 1 (因为 streak 是从0开始存的，或者如果是今天还没签到，显示即将到来的天数)
-            // 简单起见，显示当前有效的连胜天数
             let displayStreak = gameState.streak;
-            if (gameState.lastCheckInDate !== new Date().toDateString()) {
-                 // 如果今天还没签，显示的是昨天的连胜，或者归零
-                 // 这里为了UI好看，我们就在签到后更新
-            }
             document.getElementById('day-streak').innerText = displayStreak + " Days";
         }
 
@@ -196,29 +187,22 @@ app.hono.get('/', (c) => {
 
             let earnedPoints = 0;
 
-            // 1. 判断连胜逻辑
             if (gameState.lastCheckInDate === yesterdayStr) {
-                // 连续签到：Streak + 1
                 gameState.streak += 1;
             } else {
-                // 断签了：重置为第1天 (streak=1)
-                // 或者是第一次玩
                 gameState.streak = 1;
             }
 
-            // 2. 循环逻辑：如果超过10天，重置回1天
             if (gameState.streak > 10) {
                 gameState.streak = 1;
             }
 
-            // 3. 计算分数 (数组索引是 streak - 1)
             const rewardIndex = gameState.streak - 1;
-            earnedPoints = REWARDS[rewardIndex] || 1; // 默认1分
+            earnedPoints = REWARDS[rewardIndex] || 1; 
             
             gameState.points += earnedPoints;
             gameState.lastCheckInDate = today;
 
-            // 4. 显示加分动画
             showRewardAnim(earnedPoints);
 
             return earnedPoints;
@@ -238,7 +222,6 @@ app.hono.get('/', (c) => {
 
           if (btn.disabled) return;
 
-          // 开始抽奖动画
           let counter = 0;
           const interval = setInterval(() => {
             scoreEl.innerText = Math.floor(Math.random() * 99);
@@ -254,20 +237,16 @@ app.hono.get('/', (c) => {
           setTimeout(() => {
             clearInterval(interval);
             
-            // --- 这里执行签到结算 ---
             handleCheckIn();
 
-            // 生成今天的运势
             const score = Math.floor(Math.random() * 100);
             const word = WORDS[Math.floor(Math.random() * WORDS.length)];
             
             gameState.todayLuck = score;
             gameState.todayWord = word;
 
-            // 保存所有数据
             localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
             
-            // 更新UI
             renderResult(score, word);
             updateStatsUI();
 
@@ -294,7 +273,6 @@ app.hono.get('/', (c) => {
             const shareBtn = document.getElementById('share-btn');
             shareBtn.style.display = "block"; 
             
-            // 如果已经有结果，显示结果
             if(gameState.todayLuck) {
                  document.getElementById('score').innerText = gameState.todayLuck;
                  document.getElementById('keywords').innerText = gameState.todayWord;
@@ -310,13 +288,11 @@ app.hono.get('/', (c) => {
            sdk.actions.openUrl(\`https://warpcast.com/~/compose?text=\${encodeURIComponent(text)}&embeds[]=\${encodeURIComponent(embedUrl)}\`);
         }
 
-        // --- 初始化 ---
         document.getElementById('predict-btn').addEventListener('click', revealDestiny);
         document.getElementById('share-btn').addEventListener('click', shareDestiny);
 
-        loadGame(); // 加载游戏数据
+        loadGame(); 
 
-        // 强制 Ready
         const checkReady = setInterval(() => {
             if (sdk && sdk.actions) {
                 sdk.actions.ready();
