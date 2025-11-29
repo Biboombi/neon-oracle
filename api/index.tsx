@@ -7,7 +7,7 @@ export const app = new Frog({
   title: 'Neon Oracle',
 })
 
-// 硬编码 URL，确保按钮绝对能出来
+// 硬编码 URL
 const SITE_URL = "https://neon-oracle.vercel.app";
 
 app.hono.get('/.well-known/farcaster.json', (c) => {
@@ -34,6 +34,23 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
 })
 
 app.hono.get('/', (c) => {
+  
+  // 按照指南构建 JSON Embed 数据
+  const frameEmbed = JSON.stringify({
+    version: "1",
+    imageUrl: `${SITE_URL}/image.png?v=6`, // 版本号 v6
+    button: {
+      title: "🔮 Reveal & Check-In",
+      action: {
+        type: "launch_frame", // 使用官方推荐的启动方式
+        name: "Neon Oracle",
+        url: SITE_URL,
+        splashImageUrl: `${SITE_URL}/splash.png`,
+        splashBackgroundColor: "#050505"
+      }
+    }
+  });
+
   return c.html(`
     <!DOCTYPE html>
     <html lang="en">
@@ -42,13 +59,9 @@ app.hono.get('/', (c) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
       
       <meta property="og:title" content="Neon Oracle">
-      <meta property="og:image" content="${SITE_URL}/image.png?v=5">
+      <meta property="og:image" content="${SITE_URL}/image.png?v=6">
       
-      <meta property="fc:frame" content="vNext">
-      <meta property="fc:frame:image" content="${SITE_URL}/image.png?v=5">
-      <meta property="fc:frame:button:1" content="🔮 Reveal & Check-In">
-      <meta property="fc:frame:button:1:action" content="link">
-      <meta property="fc:frame:button:1:target" content="${SITE_URL}">
+      <meta name="fc:frame" content='${frameEmbed}'>
 
       <title>Neon Oracle</title>
       <style>
@@ -58,7 +71,6 @@ app.hono.get('/', (c) => {
         @keyframes grid-move { 0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); } }
         .container { width: 90%; max-width: 380px; text-align: center; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; padding-top: 20px; opacity: 0; transition: opacity 0.5s ease-in; }
         
-        /* 页面加载完成后显示内容的类 */
         .loaded .container { opacity: 1; }
 
         .stats-bar {
@@ -223,24 +235,18 @@ app.hono.get('/', (c) => {
 
         function shareDestiny() {
            const text = \`🔮 NEON ORACLE 🔮\\n\\n🔥 Streak: \${gameState.streak} Days\\n🏆 Points: \${gameState.points}\\n✨ Luck: \${gameState.todayLuck}/100\\n🚀 Mood: \${gameState.todayWord}\\n\\nReveal yours 👇\`;
+           // 分享时使用当前网址，这样分享出去的卡片也能被别人点击
            const embedUrl = SITE_URL; 
            sdk.actions.openUrl(\`https://warpcast.com/~/compose?text=\${encodeURIComponent(text)}&embeds[]=\${encodeURIComponent(embedUrl)}\`);
         }
 
-        // --- 初始化序列 ---
-        
-        // 1. 绑定事件
         document.getElementById('predict-btn').addEventListener('click', revealDestiny);
         document.getElementById('share-btn').addEventListener('click', shareDestiny);
 
-        // 2. 加载游戏数据
         loadGame(); 
 
-        // 3. 通知 Farcaster 我们准备好了
-        // 我们给 body 加一个 loaded 类，实现渐变显示效果
         document.body.classList.add('loaded');
         
-        // 4. 调用 SDK Ready (指南要求的核心步骤)
         try {
             sdk.actions.ready();
         } catch (e) {
