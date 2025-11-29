@@ -4,10 +4,11 @@ export const config = { runtime: 'edge' }
 
 export const app = new Frog({
   basePath: '/',
+  title: 'Neon Oracle', // 修复1：补上了标题，解决 TS2345 错误
   // dev: { devtools: true } 
 })
 
-// Automatically detect the domain
+// 自动检测域名
 const getBaseUrl = (c: any) => {
   const host = c.req.header('host') || 'neon-oracle.vercel.app'
   const protocol = host.includes('localhost') ? 'http' : 'https'
@@ -30,7 +31,7 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
       "description": "Predict your daily crypto luck.",
       "primaryCategory": "utility"
     },
-    // ↓↓↓ 这里是你刚才提供的真实身份证信息 ↓↓↓
+    // ↓↓↓↓↓ 重点：请把你的真实 signature 填在下面双引号里 ↓↓↓↓↓
     "accountAssociation": {
       "header": "eyJmaWQiOjIxNTYzLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4QzBBRGVGZUY4NGFlQTJDQTA4QTEyNWFCRUExNDdEMTA5ZDFEMjFDOSJ9",
       "payload": "eyJkb21haW4iOiJuZW9uLW9yYWNsZS52ZXJjZWwuYXBwIn0",
@@ -41,6 +42,8 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
 
 app.hono.get('/', (c) => {
   const baseUrl = getBaseUrl(c)
+  
+  // 修复2：为了防止符号错误，我们不使用复杂的嵌套反引号
   return c.html(`
     <!DOCTYPE html>
     <html lang="en">
@@ -141,55 +144,4 @@ app.hono.get('/', (c) => {
         function renderResult(data) {
           currentData = data;
           document.getElementById('score').innerText = data.score;
-          document.getElementById('keywords').innerText = data.word;
-          
-          document.getElementById('score').classList.add('visible');
-          document.getElementById('keywords').classList.add('visible');
-          document.getElementById('oracle-ball').classList.add('active');
-          
-          const predictBtn = document.getElementById('predict-btn');
-          predictBtn.innerText = "COME BACK TOMORROW";
-          predictBtn.disabled = true;
-          predictBtn.style.display = "none"; 
-
-          const shareBtn = document.getElementById('share-btn');
-          shareBtn.style.display = "block"; 
-        }
-
-        function shareDestiny() {
-           if (!currentData) return;
-           
-           const text = \`🔮 NEON ORACLE PREDICTION 🔮\\n\\n✨ Luck Score: \${currentData.score}/100\\n🚀 Sentiment: \${currentData.word}\\n\\nCheck your destiny 👇\`;
-           
-           const embedUrl = "${baseUrl}"; 
-           
-           const shareUrl = \`https://warpcast.com/~/compose?text=\${encodeURIComponent(text)}&embeds[]=\${encodeURIComponent(embedUrl)}\`;
-           
-           if (window.farcaster && window.farcaster.sdk) {
-               window.farcaster.sdk.actions.openUrl(shareUrl);
-           } else {
-               window.open(shareUrl, '_blank');
-           }
-        }
-
-        document.addEventListener("DOMContentLoaded", async () => {
-          const savedData = localStorage.getItem(STORAGE_KEY);
-          if (savedData) {
-            const parsed = JSON.parse(savedData);
-            if (parsed.date === new Date().toDateString()) {
-                renderResult(parsed);
-            } else {
-                localStorage.removeItem(STORAGE_KEY);
-            }
-          }
-
-          if (window.farcaster && window.farcaster.sdk) { 
-            try { 
-                await window.farcaster.sdk.context; 
-                window.farcaster.sdk.actions.ready(); 
-            } catch (e) {
-                console.error("Farcaster SDK Error:", e);
-            } 
-          }
-        });
-      </script>
+          document.getElementById
