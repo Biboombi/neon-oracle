@@ -29,13 +29,11 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
       "description": "Predict your daily crypto luck.",
       "primaryCategory": "utility"
     },
-    // ↓↓↓↓↓ 这里是你刚刚发给我的正确数据 ↓↓↓↓↓
     "accountAssociation": {
       "header": "eyJmaWQiOjIxNTYzLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4QzBBRGVGZUY4NGFlQTJDQTA4QTEyNWFCRUExNDdEMTA5ZDFEMjFDOSJ9",
       "payload": "eyJkb21haW4iOiJuZW9uLW9yYWNsZS52ZXJjZWwuYXBwIn0",
       "signature": "WHdZf8VGTlGuzgVzvJqRiurrjpiNyXBxwEEsIZrEEeQYOvamPMew3yGZVZG9tsOTq9dRN6RVNYmHADGmvZ6kcxs="
     }
-    // ↑↑↑↑↑ 完美匹配 ↑↑↑↑↑
   })
 })
 
@@ -148,9 +146,27 @@ app.hono.get('/', (c) => {
            }
         }
 
-        // --- 核心修复：更激进地调用 Ready ---
+        // --- 连环夺命 Call (Polling Fix) ---
+        // 这是解决 "Ready not called" 最稳健的方法
+        const checkReady = setInterval(() => {
+            if (window.farcaster && window.farcaster.sdk) {
+                // 只要一发现 SDK 存在，立刻喊 Ready
+                window.farcaster.sdk.actions.ready();
+                
+                // 并停止循环
+                clearInterval(checkReady);
+                console.log("Farcaster SDK Ready called successfully!");
+            }
+        }, 100); // 每 100 毫秒检查一次
+
+        // 双重保险：5秒后无论如何再喊一次（防止上面的逻辑意外挂掉）
+        setTimeout(() => {
+             if (window.farcaster && window.farcaster.sdk) {
+                 window.farcaster.sdk.actions.ready();
+             }
+        }, 5000);
+
         document.addEventListener("DOMContentLoaded", async () => {
-          
           const savedData = localStorage.getItem(STORAGE_KEY);
           if (savedData) {
             const parsed = JSON.parse(savedData);
@@ -159,19 +175,6 @@ app.hono.get('/', (c) => {
             } else {
                 localStorage.removeItem(STORAGE_KEY);
             }
-          }
-
-          if (window.farcaster) {
-             // 策略1：立即调用，不等待
-             try {
-                window.farcaster.sdk.actions.ready();
-             } catch (e) { console.error("Early ready failed", e); }
-
-             // 策略2：等待加载后再调用（防止策略1失败）
-             try {
-                await window.farcaster.sdk.context;
-                window.farcaster.sdk.actions.ready();
-             } catch (e) { console.error("Context load failed", e); }
           }
         });
       </script>
