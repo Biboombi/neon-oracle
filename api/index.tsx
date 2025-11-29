@@ -9,6 +9,8 @@ export const app = new Frog({
 
 // 硬编码 URL
 const SITE_URL = "https://neon-oracle.vercel.app";
+// ✅ 已修正：这里改成了 biboombi
+const USERNAME = "biboombi";
 
 app.hono.get('/.well-known/farcaster.json', (c) => {
   return c.json({
@@ -35,14 +37,13 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
 
 app.hono.get('/', (c) => {
   
-  // 按照指南构建 JSON Embed 数据
   const frameEmbed = JSON.stringify({
     version: "1",
-    imageUrl: `${SITE_URL}/image.png?v=6`, // 版本号 v6
+    imageUrl: `${SITE_URL}/image.png?v=8`, // 版本号 v8
     button: {
       title: "🔮 Reveal & Check-In",
       action: {
-        type: "launch_frame", // 使用官方推荐的启动方式
+        type: "launch_frame",
         name: "Neon Oracle",
         url: SITE_URL,
         splashImageUrl: `${SITE_URL}/splash.png`,
@@ -59,13 +60,12 @@ app.hono.get('/', (c) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
       
       <meta property="og:title" content="Neon Oracle">
-      <meta property="og:image" content="${SITE_URL}/image.png?v=6">
-      
+      <meta property="og:image" content="${SITE_URL}/image.png?v=8">
       <meta name="fc:frame" content='${frameEmbed}'>
 
       <title>Neon Oracle</title>
       <style>
-        :root { --bg-color: #050505; --neon-cyan: #00f3ff; --neon-pink: #bc13fe; --neon-gold: #ffd700; }
+        :root { --bg-color: #050505; --neon-cyan: #00f3ff; --neon-pink: #bc13fe; --neon-gold: #ffd700; --fc-purple: #855DCD; }
         body { margin: 0; font-family: 'Courier New', Courier, monospace; background-color: var(--bg-color); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow: hidden; }
         .grid-bg { position: fixed; top: 0; left: 0; width: 200%; height: 200%; background-image: linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px); background-size: 40px 40px; transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px); z-index: -1; animation: grid-move 20s linear infinite; }
         @keyframes grid-move { 0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); } }
@@ -105,14 +105,46 @@ app.hono.get('/', (c) => {
         }
         .reward-popup.animate { animation: floatUp 1.5s ease-out forwards; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
-        .btn { background: transparent; padding: 15px 40px; font-size: 1.2rem; font-family: inherit; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 15px; width: 100%; max-width: 300px; box-sizing: border-box; }
+        
+        .btn { background: transparent; padding: 15px 40px; font-size: 1.2rem; font-family: inherit; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 15px; width: 100%; max-width: 300px; box-sizing: border-box; border-radius: 8px; }
+        
         .btn-predict { color: var(--neon-cyan); border: 2px solid var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
         .btn-predict:hover { background: var(--neon-cyan); color: black; box-shadow: 0 0 30px var(--neon-cyan); }
         .btn-predict:disabled { border-color: #555; color: #555; box-shadow: none; cursor: not-allowed; }
+        
         .btn-share { display: none; color: var(--neon-pink); border: 2px solid var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
         .btn-share:hover { background: var(--neon-pink); color: white; box-shadow: 0 0 30px var(--neon-pink); }
-        .btn-twitter { margin-top: 20px; text-decoration: none; color: #888; font-size: 0.8rem; }
-        .btn-twitter:hover { color: var(--neon-cyan); }
+
+        .social-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 20px;
+        }
+
+        .btn-social {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            text-decoration: none;
+        }
+
+        .btn-fc { background: rgba(133, 93, 205, 0.2); border: 1px solid var(--fc-purple); color: #d2b5ff; }
+        .btn-fc:hover { background: var(--fc-purple); color: white; }
+
+        .btn-x { background: rgba(255, 255, 255, 0.1); border: 1px solid #aaa; color: #ddd; }
+        .btn-x:hover { background: white; color: black; border-color: white; }
+
       </style>
     </head>
     <body>
@@ -135,9 +167,19 @@ app.hono.get('/', (c) => {
           <div class="predict-text" id="keywords">WAITING...</div>
         </div>
         <div id="reward-popup" class="reward-popup"></div>
+        
         <button class="btn btn-predict" id="predict-btn">REVEAL DESTINY</button>
         <button class="btn btn-share" id="share-btn">SHARE RESULT</button>
-        <a href="https://twitter.com/biboombii" target="_blank" class="btn-twitter">@biboombii</a>
+        
+        <div class="social-row">
+            <button class="btn-social btn-fc" id="follow-fc">
+                🎩 Follow FC
+            </button>
+            <button class="btn-social btn-x" id="follow-x">
+                🐦 Follow X
+            </button>
+        </div>
+
       </div>
 
       <script type="module">
@@ -147,6 +189,7 @@ app.hono.get('/', (c) => {
         const STORAGE_KEY = 'neon_oracle_v2_stats'; 
         const REWARDS = [1, 2, 5, 6, 8, 10, 12, 15, 18, 20];
         const SITE_URL = "https://neon-oracle.vercel.app";
+        const USERNAME = "biboombi"; // ✅ 修正后的用户名
 
         let gameState = { points: 0, streak: 0, lastCheckInDate: "", todayLuck: null, todayWord: null };
 
@@ -235,13 +278,23 @@ app.hono.get('/', (c) => {
 
         function shareDestiny() {
            const text = \`🔮 NEON ORACLE 🔮\\n\\n🔥 Streak: \${gameState.streak} Days\\n🏆 Points: \${gameState.points}\\n✨ Luck: \${gameState.todayLuck}/100\\n🚀 Mood: \${gameState.todayWord}\\n\\nReveal yours 👇\`;
-           // 分享时使用当前网址，这样分享出去的卡片也能被别人点击
            const embedUrl = SITE_URL; 
            sdk.actions.openUrl(\`https://warpcast.com/~/compose?text=\${encodeURIComponent(text)}&embeds[]=\${encodeURIComponent(embedUrl)}\`);
         }
 
+        // --- 社交按钮逻辑 ---
+        function followFC() {
+            sdk.actions.openUrl(\`https://warpcast.com/\${USERNAME}\`);
+        }
+
+        function followX() {
+            sdk.actions.openUrl(\`https://twitter.com/\${USERNAME}\`);
+        }
+
         document.getElementById('predict-btn').addEventListener('click', revealDestiny);
         document.getElementById('share-btn').addEventListener('click', shareDestiny);
+        document.getElementById('follow-fc').addEventListener('click', followFC);
+        document.getElementById('follow-x').addEventListener('click', followX);
 
         loadGame(); 
 
