@@ -30,7 +30,7 @@ app.hono.get('/.well-known/farcaster.json', (c) => {
       "primaryCategory": "utility"
     },
     "accountAssociation": {
-      "header": "eyJmaWQiOjIxNDgwLCJ0eXBlIjoiYXV0aCIsImtleSI6IjB4ODcxN2ZDMEY2ZjllNjdkMzhmQTc1NzFjNTUwMWRmNzA3QTIzQzFBNiJ9",
+      "header": "eyJmaWQiOjIxNTYzLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4QzBBRGVGZUY4NGFlQTJDQTA4QTEyNWFCRUExNDdEMTA5ZDFEMjFDOSJ9",
       "payload": "eyJkb21haW4iOiJuZW9uLW9yYWNsZS52ZXJjZWwuYXBwIn0",
       "signature": "WHdZf8VGTlGuzgVzvJqRiurrjpiNyXBxwEEsIZrEEeQYOvamPMew3yGZVZG9tsOTq9dRN6RVNYmHADGmvZ6kcxs="
     }
@@ -169,3 +169,4 @@ app.hono.get('/', (c) => {
 
 export const GET = app.fetch
 export const POST = app.fetch
+
