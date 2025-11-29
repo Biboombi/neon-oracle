@@ -7,10 +7,14 @@ export const app = new Frog({
   title: 'Neon Oracle',
 })
 
-// 硬编码 URL
+// --- 🔧 配置区域 (Configuration) ---
 const SITE_URL = "https://neon-oracle.vercel.app";
-// ✅ 已修正：这里改成了 biboombi
-const USERNAME = "biboombi";
+
+// ✅ Farcaster 链接 (一个 i)
+const FC_LINK = "https://warpcast.com/biboombi"; 
+
+// ✅ X (Twitter) 链接 (两个 i，且换成了 x.com)
+const X_LINK = "https://x.com/biboombii";
 
 app.hono.get('/.well-known/farcaster.json', (c) => {
   return c.json({
@@ -39,7 +43,7 @@ app.hono.get('/', (c) => {
   
   const frameEmbed = JSON.stringify({
     version: "1",
-    imageUrl: `${SITE_URL}/image.png?v=8`, // 版本号 v8
+    imageUrl: `${SITE_URL}/image.png?v=9`, // 版本号 v9
     button: {
       title: "🔮 Reveal & Check-In",
       action: {
@@ -60,7 +64,7 @@ app.hono.get('/', (c) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
       
       <meta property="og:title" content="Neon Oracle">
-      <meta property="og:image" content="${SITE_URL}/image.png?v=8">
+      <meta property="og:image" content="${SITE_URL}/image.png?v=9">
       <meta name="fc:frame" content='${frameEmbed}'>
 
       <title>Neon Oracle</title>
@@ -188,8 +192,11 @@ app.hono.get('/', (c) => {
         const WORDS = ["BULLISH", "MOON", "HODL", "DUMP", "DEGEN", "WAGMI", "REKT", "ALPHA", "PEPE", "WHALE"];
         const STORAGE_KEY = 'neon_oracle_v2_stats'; 
         const REWARDS = [1, 2, 5, 6, 8, 10, 12, 15, 18, 20];
-        const SITE_URL = "https://neon-oracle.vercel.app";
-        const USERNAME = "biboombi"; // ✅ 修正后的用户名
+        
+        // 直接使用常量，不用拼接了
+        const SITE_URL = "${SITE_URL}";
+        const FC_LINK = "${FC_LINK}";
+        const X_LINK = "${X_LINK}";
 
         let gameState = { points: 0, streak: 0, lastCheckInDate: "", todayLuck: null, todayWord: null };
 
@@ -284,11 +291,11 @@ app.hono.get('/', (c) => {
 
         // --- 社交按钮逻辑 ---
         function followFC() {
-            sdk.actions.openUrl(\`https://warpcast.com/\${USERNAME}\`);
+            sdk.actions.openUrl(FC_LINK);
         }
 
         function followX() {
-            sdk.actions.openUrl(\`https://twitter.com/\${USERNAME}\`);
+            sdk.actions.openUrl(X_LINK);
         }
 
         document.getElementById('predict-btn').addEventListener('click', revealDestiny);
